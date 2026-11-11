@@ -4,9 +4,14 @@ class Account:
         self.owner = owner
         self.balance = balance
     def deposit(self,amount):
-        self.balance = self.balance + amount
-    def withdraw(self,amount):
-        if(self.balance>=amount):
-            self.balance = self.balance - amount
+        if(amount>0):
+            self.balance = self.balance + amount
+            return True
         else:
-            print("Insufficient funds")
+            return False
+    def withdraw(self,amount):
+        if(self.balance>=amount and amount>0):
+            self.balance = self.balance - amount
+            return True
+        else:
+            return False
