@@ -51,3 +51,9 @@ print("Transfer successful:", success)
 
 print("A001 balance:", bank.get_account("A001").balance)
 print("A002 balance:", bank.get_account("A002").balance)
+
+print(bank.register_customer_credentials("C005", "password123"))
+
+
+print(bank.authenticate_customer("C005", "password123"))
+print(bank.authenticate_customer("C005", "wrongpassword"))

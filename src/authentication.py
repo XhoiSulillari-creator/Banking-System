@@ -10,3 +10,9 @@ class AuthenticationService:
             return False
 
         return self.credentials[customer_id] == password
+
+    def authenticate_customer(self, customer_id, password):
+        return self.authentication_service.authenticate(
+            customer_id,
+            password
+    )
