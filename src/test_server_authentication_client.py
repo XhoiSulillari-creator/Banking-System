@@ -10,7 +10,7 @@ client_socket.connect(
     ("127.0.0.1", 5002)
 )
 
-message = "SERVER_LOGIN:BANK_ALBANIA:wrong-credential"
+message = "SERVER_LOGIN:BANK_ALBANIA:alb-server-123"
 
 client_socket.sendall(message.encode())
 
