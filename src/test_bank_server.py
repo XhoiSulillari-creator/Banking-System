@@ -3,6 +3,7 @@ from bank_server import BankServer
 from customer_repository import CustomerRepository
 from account_repository import AccountRepository
 from authentication import AuthenticationService
+from server_authentication import ServerAuthenticationService
 from customer import Customer
 
 
@@ -10,74 +11,61 @@ from customer import Customer
 # Bank Albania
 # -------------------------
 
-customer_repository_1 = CustomerRepository(
+customer_repository = CustomerRepository(
     "data/bank1_customers.json"
 )
 
-account_repository_1 = AccountRepository(
+account_repository = AccountRepository(
     "data/bank1_accounts.json",
-    customer_repository_1
+    customer_repository
 )
 
-authentication_service_1 = AuthenticationService()
+authentication_service = AuthenticationService()
 
-bank1 = Bank(
+bank = Bank(
     "Bank Albania",
-    customer_repository_1,
-    account_repository_1,
-    authentication_service_1
+    customer_repository,
+    account_repository,
+    authentication_service
 )
 
-customer1 = Customer("C005", "Xhoi")
+customer = Customer("C005", "Xhoi")
 
-bank1.add_customer(customer1)
+bank.add_customer(customer)
 
-bank1.register_customer_credentials(
+bank.register_customer_credentials(
     "C005",
     "password123"
 )
 
 
 # -------------------------
-# Bank Greece
+# Server authentication
 # -------------------------
 
-customer_repository_2 = CustomerRepository(
-    "data/bank2_customers.json"
+server_authentication_service = ServerAuthenticationService()
+
+server_authentication_service.register(
+    "BANK_ALBANIA",
+    "alb-server-123"
 )
 
-account_repository_2 = AccountRepository(
-    "data/bank2_accounts.json",
-    customer_repository_2
-)
-
-authentication_service_2 = AuthenticationService()
-
-bank2 = Bank(
-    "Bank Greece",
-    customer_repository_2,
-    account_repository_2,
-    authentication_service_2
-)
-
-customer2 = Customer("C006", "Alice")
-
-bank2.add_customer(customer2)
-
-bank2.register_customer_credentials(
-    "C006",
-    "alice123"
+server_authentication_service.register(
+    "BANK_GREECE",
+    "gr-server-123"
 )
 
 
 # -------------------------
-# Start Bank Albania server
+# Bank Albania server
 # -------------------------
 
 server = BankServer(
-    bank1,
+    bank,
     "127.0.0.1",
-    5001
+    5001,
+    server_authentication_service,
+    "BANK_ALBANIA"
 )
 
 server.start()
