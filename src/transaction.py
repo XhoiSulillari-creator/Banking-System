@@ -7,10 +7,12 @@ class Transaction:
 
     def execute(self):
         withdraw_success = self.source_account.withdraw(self.amount)
-        if not withdraw_success:
-           return False
 
-        deposit_success = self.source_account.deposit(self.amount)
+        if not withdraw_success:
+            return False
+
+        deposit_success = self.destination_account.deposit(self.amount)
+
         if deposit_success:
             return True
 

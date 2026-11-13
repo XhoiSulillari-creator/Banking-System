@@ -17,6 +17,15 @@ class AccountRepository:
             "balance": account.balance
         }
 
+        for index, existing_account in enumerate(accounts):
+            if existing_account["account_id"] == account.account_id:
+                accounts[index] = data
+
+                with open(self.file_path, "w") as file:
+                    json.dump(accounts, file, indent=4)
+
+                return
+
         accounts.append(data)
 
         with open(self.file_path, "w") as file:

@@ -1,12 +1,20 @@
 from customer_repository import CustomerRepository
 from account_repository import AccountRepository
 from transaction import Transaction
+from authentication import AuthenticationService
 
 class Bank:
-    def __init__(self, name, customer_repository, account_repository):
+    def __init__(
+    self,
+    name,
+    customer_repository,
+    account_repository,
+    authentication_service
+):
         self.name = name
         self.customer_repository = customer_repository
         self.account_repository = account_repository
+        self.authentication_service = authentication_service
 
     def add_customer(self, customer):
         existing_customer = self.customer_repository.load(

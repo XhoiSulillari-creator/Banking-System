@@ -3,8 +3,10 @@ from customer_repository import CustomerRepository
 from account_repository import AccountRepository
 from customer import Customer
 from account import Account
+from authentication import AuthenticationService
 
 
+authentication_service = AuthenticationService()
 customer_repository = CustomerRepository("data/customers.json")
 account_repository = AccountRepository(
     "data/accounts.json",
@@ -14,7 +16,8 @@ account_repository = AccountRepository(
 bank = Bank(
     "Bank Albania",
     customer_repository,
-    account_repository
+    account_repository,
+    authentication_service
 )
 
 customer1 = Customer("C005", "Xhoi")
