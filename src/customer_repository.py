@@ -5,19 +5,31 @@ class CustomerRepository:
     def __init__(self,file_path):
         self.file_path = file_path
 
-    def save(self,customer):
+    def save(self, customer):
+        customers = self._load_all()
+
         data = {
             "customer_id": customer.customer_id,
             "name": customer.name
-        }
-        with open(self.file_path,"w")as file:
-            json.dump(data,file)
+    }
+
+        customers.append(data)
+
+        with open(self.file_path, "w") as file:
+            json.dump(customers, file, indent=4)
 
     def load(self, customer_id):
-        with open(self.file_path, "r") as file:
-            data = json.load(file)
+        customers = self._load_all()
 
-        if data["customer_id"] == customer_id:
-            return Customer(data["customer_id"], data["name"])
+        for data in customers:
+            if data["customer_id"] == customer_id:
+                return Customer(data["customer_id"], data["name"])
 
-        return None   
+        return None
+
+    def _load_all(self):
+        try:
+            with open(self.file_path, "r") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return []

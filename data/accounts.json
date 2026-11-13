@@ -1,1 +1,72 @@
-{"account_id": "A001", "customer_id": "C001", "balance": 1000}
+[
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    },
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    },
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    },
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    },
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    },
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    },
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 1000
+    },
+    {
+        "account_id": "A002",
+        "customer_id": "C006",
+        "balance": 500
+    }
+]

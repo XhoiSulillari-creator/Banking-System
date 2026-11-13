@@ -1,1 +1,66 @@
-{"customer_id": "C001", "name": "Alice"}
+[
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    },
+    {
+        "customer_id": "C005",
+        "name": "Xhoi"
+    },
+    {
+        "customer_id": "C006",
+        "name": "Alice"
+    }
+]
