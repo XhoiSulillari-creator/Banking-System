@@ -73,13 +73,18 @@ admin_authentication_service = AdminAuthenticationService(
     "data/bank1_admin_mailbox.json"
 )
 
+peer_credentials = {
+    "BANK_GREECE": "gr-server-123"
+}
+
 server = BankServer(
     bank,
     "127.0.0.1",
     5001,
     server_authentication_service,
     "BANK_ALBANIA",
-    admin_authentication_service
+    admin_authentication_service,
+    peer_credentials
 )
 
 server.start()

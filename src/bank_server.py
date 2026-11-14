@@ -1,26 +1,29 @@
 import socket
-
+from bank_logger import get_bank_logger
 
 class BankServer:
     def __init__(
-        self,
-        bank,
-        host,
-        port,
-        server_authentication_service,
-        server_id,
-        admin_authentication_service
-    ):
-        self.bank = bank
-        self.host = host
-        self.port = port
-        self.server_authentication_service = (
+            self,
+            bank,
+            host,
+            port,
+            server_authentication_service,
+            server_id,
+            admin_authentication_service,
+            peer_credentials
+):
+            self.bank = bank
+            self.host = host
+            self.port = port
+            self.server_authentication_service = (
             server_authentication_service
         )
-        self.server_id = server_id
-        self.admin_authentication_service = (
+            self.server_id = server_id
+            self.peer_credentials = peer_credentials
+            self.admin_authentication_service = (
             admin_authentication_service
         )
+            self.logger = get_bank_logger()
 
     def start(self):
         server_socket = socket.socket(
@@ -103,8 +106,15 @@ class BankServer:
         if self.bank.authenticate_customer(
             customer_id,
             password
-        ):
+):
+            self.logger.info(
+                f"Customer login successful: {customer_id}"
+    )
             return "Login successful"
+
+        self.logger.warning(
+            f"Customer login failed: {customer_id}"
+)
 
         return "Login failed"
 
@@ -174,14 +184,27 @@ class BankServer:
             destination_host,
             destination_port,
             destination_server_id,
-            "alb-server-123",
+            self.peer_credentials[destination_server_id],
             source_account_id,
             destination_account_id,
             amount
         )
 
         if success:
+            self.logger.info(
+                f"Inter-bank transfer successful: "
+                f"{source_account_id} -> "
+                f"{destination_account_id}, "
+                f"amount={amount}"
+            )
             return "Transfer successful"
+
+        self.logger.error(
+            f"Inter-bank transfer failed: "
+            f"{source_account_id} -> "
+            f"{destination_account_id}, "
+            f"amount={amount}"
+)
 
         return "Transfer failed"
 
@@ -209,8 +232,15 @@ class BankServer:
         if self.admin_authentication_service.authenticate(
             admin_id,
             otp
-        ):
+):
+            self.logger.info(
+                f"Admin login successful: {admin_id}"
+    )
             return "Admin login successful"
+
+        self.logger.warning(
+            f"Admin login failed: {admin_id}"
+)
 
         return "Admin login failed"
 
@@ -305,6 +335,7 @@ class BankServer:
             socket.AF_INET,
             socket.SOCK_STREAM
         )
+        client_socket.settimeout(5)
 
         client_socket.connect(
             (host, port)
@@ -336,24 +367,32 @@ class BankServer:
         destination_account_id,
         amount
     ):
-        authentication_response = (
-            self.authenticate_with_server(
-                remote_host,
-                remote_port,
-                remote_server_id,
-                remote_credential
-            )
+        try:
+            authentication_response = (
+                self.authenticate_with_server(
+                    remote_host,
+                    remote_port,
+                    remote_server_id,
+                    remote_credential
         )
+    )
+        except (socket.timeout, ConnectionRefusedError):
+            self.logger.error(
+                f"Remote bank unavailable: "
+                f"{remote_host}:{remote_port}"
+            )
+            return False
 
         if authentication_response != (
             "Server authentication successful"
-        ):
+    ):
             return False
 
         prepare_socket = socket.socket(
             socket.AF_INET,
             socket.SOCK_STREAM
         )
+        prepare_socket.settimeout(5)
 
         prepare_socket.connect(
             (remote_host, remote_port)
@@ -388,6 +427,7 @@ class BankServer:
             socket.AF_INET,
             socket.SOCK_STREAM
         )
+        commit_socket.settimeout(5)
 
         try:
             commit_socket.connect(
