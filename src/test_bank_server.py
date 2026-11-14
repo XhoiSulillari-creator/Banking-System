@@ -5,6 +5,7 @@ from account_repository import AccountRepository
 from authentication import AuthenticationService
 from server_authentication import ServerAuthenticationService
 from customer import Customer
+from account import Account
 
 
 # -------------------------
@@ -32,6 +33,14 @@ bank = Bank(
 customer = Customer("C005", "Xhoi")
 
 bank.add_customer(customer)
+
+account = Account(
+    "A001",
+    customer,
+    1000
+)
+
+bank.add_account(account)
 
 bank.register_customer_credentials(
     "C005",

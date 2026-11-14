@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "account_id": "A001",
+        "customer_id": "C005",
+        "balance": 800
+    }
+]

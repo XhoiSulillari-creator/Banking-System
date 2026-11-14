@@ -7,18 +7,18 @@ from server_authentication import ServerAuthenticationService
 
 
 customer_repository = CustomerRepository(
-    "data/bank2_customers.json"
+    "data/bank1_customers.json"
 )
 
 account_repository = AccountRepository(
-    "data/bank2_accounts.json",
+    "data/bank1_accounts.json",
     customer_repository
 )
 
 authentication_service = AuthenticationService()
 
 bank = Bank(
-    "Bank Greece",
+    "Bank Albania",
     customer_repository,
     account_repository,
     authentication_service
@@ -39,9 +39,16 @@ server_authentication_service.register(
 server = BankServer(
     bank,
     "127.0.0.1",
-    5002,
+    5001,
     server_authentication_service,
-    "BANK_GREECE"
+    "BANK_ALBANIA"
 )
 
-server.start()
+response = server.authenticate_with_server(
+    "127.0.0.1",
+    5002,
+    "BANK_GREECE",
+    "gr-server-123"
+)
+
+print(f"Server authentication response: {response}")

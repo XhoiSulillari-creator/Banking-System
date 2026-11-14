@@ -100,3 +100,28 @@ class Bank:
             customer_id,
             password
     )
+
+    def debit_account(self, account_id, amount):
+        account = self.get_account(account_id)
+
+        if account is None:
+            return False
+
+        if not account.withdraw(amount):
+            return False
+
+        self.account_repository.save(account)
+        return True
+
+
+    def credit_account(self, account_id, amount):
+        account = self.get_account(account_id)
+
+        if account is None:
+            return False
+
+        if not account.deposit(amount):
+            return False
+
+        self.account_repository.save(account)
+        return True
