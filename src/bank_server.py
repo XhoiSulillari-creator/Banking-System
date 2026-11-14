@@ -8,7 +8,8 @@ class BankServer:
         host,
         port,
         server_authentication_service,
-        server_id
+        server_id,
+        admin_authentication_service
     ):
         self.bank = bank
         self.host = host
@@ -17,18 +18,21 @@ class BankServer:
             server_authentication_service
         )
         self.server_id = server_id
+        self.admin_authentication_service = (
+            admin_authentication_service
+        )
 
     def start(self):
         server_socket = socket.socket(
             socket.AF_INET,
             socket.SOCK_STREAM
-    )
+        )
 
         server_socket.setsockopt(
             socket.SOL_SOCKET,
             socket.SO_REUSEADDR,
             1
-    )
+        )
 
         server_socket.bind((self.host, self.port))
         server_socket.listen()
@@ -36,7 +40,7 @@ class BankServer:
         print(
             f"{self.bank.name} listening on "
             f"{self.host}:{self.port}"
-    )
+        )
 
         while True:
             connection, address = server_socket.accept()
@@ -50,6 +54,24 @@ class BankServer:
 
             if message.startswith("LOGIN:"):
                 response = self._handle_customer_login(message)
+
+            elif message.startswith("GET_ACCOUNT:"):
+                response = self._handle_get_account(message)
+
+            elif message.startswith("TRANSFER:"):
+                response = self._handle_customer_transfer(message)
+
+            elif message.startswith("REQUEST_OTP:"):
+                response = self._handle_request_otp(message)
+
+            elif message.startswith("ADMIN_LOGIN:"):
+                response = self._handle_admin_login(message)
+
+            elif message.startswith("ADMIN_ACCOUNT:"):
+                response = self._handle_admin_account(message)
+
+            elif message == "ADMIN_STATISTICS":
+                response = self._handle_admin_statistics()
 
             elif message.startswith("SERVER_LOGIN:"):
                 response = self._handle_server_login(message)
@@ -68,7 +90,7 @@ class BankServer:
 
             connection.sendall(response.encode())
             connection.close()
-    
+
     def _handle_customer_login(self, message):
         parts = message.split(":")
 
@@ -85,6 +107,131 @@ class BankServer:
             return "Login successful"
 
         return "Login failed"
+
+    def _handle_get_account(self, message):
+        parts = message.split(":")
+
+        if len(parts) != 3:
+            return "Invalid account request"
+
+        customer_id = parts[1]
+        account_id = parts[2]
+
+        customer = self.bank.get_customer(customer_id)
+
+        if customer is None:
+            return "Customer not found"
+
+        account = self.bank.get_account(account_id)
+
+        if account is None:
+            return "Account not found"
+
+        if account.owner.customer_id != customer_id:
+            return (
+                "Access denied: account does not "
+                "belong to customer"
+            )
+
+        return f"Balance:{account.balance}"
+
+    def _handle_customer_transfer(self, message):
+        parts = message.split(":")
+
+        if len(parts) != 8:
+            return "Invalid transfer request"
+
+        customer_id = parts[1]
+        source_account_id = parts[2]
+        destination_host = parts[3]
+        destination_port = parts[4]
+        destination_server_id = parts[5]
+        destination_account_id = parts[6]
+
+        try:
+            amount = float(parts[7])
+            destination_port = int(destination_port)
+        except ValueError:
+            return "Invalid transfer amount or port"
+
+        source_account = self.bank.get_account(
+            source_account_id
+        )
+
+        if source_account is None:
+            return "Source account not found"
+
+        if source_account.owner.customer_id != customer_id:
+            return (
+                "Access denied: source account does not "
+                "belong to customer"
+            )
+
+        if amount <= 0:
+            return "Transfer amount must be greater than zero"
+
+        success = self.execute_interbank_transfer(
+            destination_host,
+            destination_port,
+            destination_server_id,
+            "alb-server-123",
+            source_account_id,
+            destination_account_id,
+            amount
+        )
+
+        if success:
+            return "Transfer successful"
+
+        return "Transfer failed"
+
+    def _handle_request_otp(self, message):
+        parts = message.split(":")
+
+        if len(parts) != 2:
+            return "Invalid OTP request"
+
+        admin_id = parts[1]
+
+        return self.admin_authentication_service.request_otp(
+            admin_id
+        )
+
+    def _handle_admin_login(self, message):
+        parts = message.split(":")
+
+        if len(parts) != 3:
+            return "Invalid admin login request"
+
+        admin_id = parts[1]
+        otp = parts[2]
+
+        if self.admin_authentication_service.authenticate(
+            admin_id,
+            otp
+        ):
+            return "Admin login successful"
+
+        return "Admin login failed"
+
+    def _handle_admin_account(self, message):
+        parts = message.split(":")
+
+        if len(parts) != 2:
+            return "Invalid admin account request"
+
+        account_id = parts[1]
+
+        account = self.bank.get_account(account_id)
+
+        if account is None:
+            return "Account not found"
+
+        return (
+            f"Account:{account.account_id}"
+            f"|Customer:{account.owner.customer_id}"
+            f"|Balance:{account.balance}"
+        )
 
     def _handle_server_login(self, message):
         parts = message.split(":")
@@ -139,7 +286,10 @@ class BankServer:
         except ValueError:
             return "Invalid transfer amount"
 
-        if self.bank.credit_account(account_id, amount):
+        if self.bank.credit_account(
+            account_id,
+            amount
+        ):
             return "Transfer committed"
 
         return "Transfer commit failed"
@@ -156,7 +306,9 @@ class BankServer:
             socket.SOCK_STREAM
         )
 
-        client_socket.connect((host, port))
+        client_socket.connect(
+            (host, port)
+        )
 
         message = (
             f"SERVER_LOGIN:"
@@ -166,7 +318,9 @@ class BankServer:
 
         client_socket.sendall(message.encode())
 
-        response = client_socket.recv(1024).decode()
+        response = client_socket.recv(
+            1024
+        ).decode()
 
         client_socket.close()
 
@@ -215,9 +369,9 @@ class BankServer:
             prepare_message.encode()
         )
 
-        prepare_response = (
-            prepare_socket.recv(1024).decode()
-        )
+        prepare_response = prepare_socket.recv(
+            1024
+        ).decode()
 
         prepare_socket.close()
 
@@ -250,9 +404,9 @@ class BankServer:
                 commit_message.encode()
             )
 
-            commit_response = (
-                commit_socket.recv(1024).decode()
-            )
+            commit_response = commit_socket.recv(
+                1024
+            ).decode()
 
         finally:
             commit_socket.close()
@@ -266,3 +420,12 @@ class BankServer:
         )
 
         return False
+
+    def _handle_admin_statistics(self):
+        statistics = self.bank.get_statistics()
+
+        return (
+            f"Customers:{statistics['customers']}"
+            f"|Accounts:{statistics['accounts']}"
+            f"|TotalBalance:{statistics['total_balance']}"
+    )

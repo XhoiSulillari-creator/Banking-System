@@ -6,6 +6,7 @@ from authentication import AuthenticationService
 from server_authentication import ServerAuthenticationService
 from customer import Customer
 from account import Account
+from admin_authentication import AdminAuthenticationService
 
 
 # -------------------------
@@ -69,12 +70,17 @@ server_authentication_service.register(
 # Bank Greece server
 # -------------------------
 
+admin_authentication_service = AdminAuthenticationService(
+    "data/bank2_admin_mailbox.json"
+)
+
 server = BankServer(
     bank,
     "127.0.0.1",
     5002,
     server_authentication_service,
-    "BANK_GREECE"
+    "BANK_GREECE",
+    admin_authentication_service
 )
 
 server.start()

@@ -125,3 +125,19 @@ class Bank:
 
         self.account_repository.save(account)
         return True
+
+    def get_statistics(self):
+        accounts = self.account_repository._load_all()
+
+        total_balance = 0
+
+        for account in accounts:
+            total_balance += account["balance"]
+
+        return {
+            "customers": len(
+                self.customer_repository._load_all()
+            ),
+        "accounts": len(accounts),
+        "total_balance": total_balance
+    }
