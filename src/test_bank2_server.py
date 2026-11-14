@@ -75,7 +75,7 @@ admin_authentication_service = AdminAuthenticationService(
 )
 
 peer_credentials = {
-    "BANK_ALBANIA": "alb-server-123"
+    "BANK_ALBANIA": "gr-server-123"
 }
 
 server = BankServer(
