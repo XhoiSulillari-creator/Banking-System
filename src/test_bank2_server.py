@@ -7,6 +7,7 @@ from server_authentication import ServerAuthenticationService
 from customer import Customer
 from account import Account
 from admin_authentication import AdminAuthenticationService
+from session_service import SessionService
 
 
 # -------------------------
@@ -67,16 +68,33 @@ server_authentication_service.register(
 
 
 # -------------------------
-# Bank Greece server
+# Admin authentication
 # -------------------------
 
 admin_authentication_service = AdminAuthenticationService(
     "data/bank2_admin_mailbox.json"
 )
 
+
+# -------------------------
+# Session service
+# -------------------------
+
+session_service = SessionService()
+
+
+# -------------------------
+# Peer credentials
+# -------------------------
+
 peer_credentials = {
-    "BANK_ALBANIA": "gr-server-123"
+    "BANK_ALBANIA": "alb-server-123"
 }
+
+
+# -------------------------
+# Bank Greece server
+# -------------------------
 
 server = BankServer(
     bank,
@@ -85,7 +103,8 @@ server = BankServer(
     server_authentication_service,
     "BANK_GREECE",
     admin_authentication_service,
-    peer_credentials
+    peer_credentials,
+    session_service
 )
 
 server.start()

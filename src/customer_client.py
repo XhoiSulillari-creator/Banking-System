@@ -11,6 +11,7 @@ class CustomerClient:
         self.port = port
         self.customer_id = None
         self.password = None
+        self.session_token = None
 
     def send_request(self, message):
         client_socket = socket.socket(
@@ -39,16 +40,20 @@ class CustomerClient:
             f"LOGIN:{customer_id}:{password}"
         )
 
-        if response == "Login successful":
+        if response.startswith("Login successful|Token:"):
             self.customer_id = customer_id
             self.password = password
+            self.session_token = response.split(
+                "Token:",
+                1
+            )[1]
 
         return response
 
     def get_account_balance(self, account_id):
         return self.send_request(
             f"GET_ACCOUNT:"
-            f"{self.customer_id}:"
+            f"{self.session_token}:"
             f"{account_id}"
         )
 

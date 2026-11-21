@@ -1,5 +1,6 @@
 import socket
 from bank_logger import get_bank_logger
+from session_service import SessionService
 
 class BankServer:
     def __init__(
@@ -10,7 +11,9 @@ class BankServer:
             server_authentication_service,
             server_id,
             admin_authentication_service,
-            peer_credentials
+            peer_credentials,
+            session_service
+
 ):
             self.bank = bank
             self.host = host
@@ -20,6 +23,7 @@ class BankServer:
         )
             self.server_id = server_id
             self.peer_credentials = peer_credentials
+            self.session_service = session_service
             self.admin_authentication_service = (
             admin_authentication_service
         )
@@ -106,15 +110,23 @@ class BankServer:
         if self.bank.authenticate_customer(
             customer_id,
             password
-):
+    ):
+            token = self.session_service.create_session(
+                customer_id
+        )
+
+            print("SESSION CREATED:", token)
+            print("SESSIONS:", self.session_service.sessions)
+
             self.logger.info(
                 f"Customer login successful: {customer_id}"
-    )
-            return "Login successful"
+        )
+
+            return f"Login successful|Token:{token}"
 
         self.logger.warning(
             f"Customer login failed: {customer_id}"
-)
+    )
 
         return "Login failed"
 
@@ -124,13 +136,19 @@ class BankServer:
         if len(parts) != 3:
             return "Invalid account request"
 
-        customer_id = parts[1]
+        token = parts[1]
         account_id = parts[2]
 
-        customer = self.bank.get_customer(customer_id)
+        customer_id = self.session_service.get_customer(token)
+        print("SESSION LOOKUP TOKEN:", token)
+        print("SESSIONS:", self.session_service.sessions)
+        print("CUSTOMER FROM SESSION:", customer_id)
 
-        if customer is None:
-            return "Customer not found"
+        if customer_id is None:
+            self.logger.warning(
+                "Account request rejected: invalid session"
+        )
+        return "Authentication required"
 
         account = self.bank.get_account(account_id)
 
@@ -138,10 +156,11 @@ class BankServer:
             return "Account not found"
 
         if account.owner.customer_id != customer_id:
-            return (
-                "Access denied: account does not "
-                "belong to customer"
-            )
+            self.logger.warning(
+                f"Unauthorized account access attempt: "
+                f"customer={customer_id}, account={account_id}"
+        )
+            return "Access denied"
 
         return f"Balance:{account.balance}"
 
