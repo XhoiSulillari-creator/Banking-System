@@ -322,23 +322,44 @@ class BankServer:
         if self.server_authentication_service.authenticate(
             server_id,
             credential
-        ):
-            return "Server authentication successful"
+    ):
+            token = self.session_service.create_session(
+                server_id
+        )
+
+            self.logger.info(
+                f"Server login successful: {server_id}"
+        )
+
+            return f"Server authentication successful|Token:{token}"
+
+        self.logger.warning(
+            f"Server login failed: {server_id}"
+    )
 
         return "Server authentication failed"
-
+    
     def _handle_transfer_prepare(self, message):
         parts = message.split(":")
 
-        if len(parts) != 3:
+        if len(parts) != 4:
             return "Invalid transfer request"
 
-        account_id = parts[1]
+        token = parts[1]
+        account_id = parts[2]
 
         try:
-            amount = float(parts[2])
+            amount = float(parts[3])
         except ValueError:
             return "Invalid transfer amount"
+
+        server_id = self.session_service.get_identity(token)
+
+        if server_id is None:
+            self.logger.warning(
+                "Transfer prepare rejected: invalid server session"
+        )
+            return "Authentication required"
 
         if amount <= 0:
             return "Invalid transfer amount"
@@ -348,25 +369,43 @@ class BankServer:
         if account is None:
             return "Destination account not found"
 
+        self.logger.info(
+            f"Transfer prepare authorized: "
+            f"server={server_id}, account={account_id}"
+    )
+
         return "Transfer prepared"
 
     def _handle_transfer_commit(self, message):
         parts = message.split(":")
 
-        if len(parts) != 3:
+        if len(parts) != 4:
             return "Invalid transfer request"
 
-        account_id = parts[1]
+        token = parts[1]
+        account_id = parts[2]
 
         try:
-            amount = float(parts[2])
+            amount = float(parts[3])
         except ValueError:
             return "Invalid transfer amount"
+
+        server_id = self.session_service.get_identity(token)
+
+        if server_id is None:
+            self.logger.warning(
+                "Transfer commit rejected: invalid server session"
+        )
+            return "Authentication required"
 
         if self.bank.credit_account(
             account_id,
             amount
-        ):
+    ):
+            self.logger.info(
+                f"Transfer commit authorized: "
+                f"server={server_id}, account={account_id}"
+        )
             return "Transfer committed"
 
         return "Transfer commit failed"
@@ -430,10 +469,15 @@ class BankServer:
             )
             return False
 
-        if authentication_response != (
-            "Server authentication successful"
-    ):
+        if not authentication_response.startswith(
+            "Server authentication successful|Token:"
+        ):
             return False
+
+        server_token = authentication_response.split(
+            "Token:",
+            1
+        )[1]
 
         prepare_socket = socket.socket(
             socket.AF_INET,
@@ -447,9 +491,10 @@ class BankServer:
 
         prepare_message = (
             f"TRANSFER_PREPARE:"
+            f"{server_token}:"
             f"{destination_account_id}:"
             f"{amount}"
-        )
+)
 
         prepare_socket.sendall(
             prepare_message.encode()
@@ -483,9 +528,10 @@ class BankServer:
 
             commit_message = (
                 f"TRANSFER_COMMIT:"
+                f"{server_token}:"
                 f"{destination_account_id}:"
                 f"{amount}"
-            )
+)
 
             commit_socket.sendall(
                 commit_message.encode()
