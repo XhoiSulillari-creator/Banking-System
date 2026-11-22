@@ -1,6 +1,8 @@
 import socket
 from bank_logger import get_bank_logger
 from session_service import SessionService
+from login_command import LoginCommand
+from get_account_command import GetAccountCommand
 
 class BankServer:
     def __init__(
@@ -60,10 +62,20 @@ class BankServer:
             print(f"Message received: {message}")
 
             if message.startswith("LOGIN:"):
-                response = self._handle_customer_login(message)
+                command = LoginCommand(
+                self,
+                message
+                )
+
+                response = command.execute()
 
             elif message.startswith("GET_ACCOUNT:"):
-                response = self._handle_get_account(message)
+                command = GetAccountCommand(
+                    self,
+                    message
+    )
+
+                response = command.execute()
 
             elif message.startswith("TRANSFER:"):
                 response = self._handle_customer_transfer(message)
