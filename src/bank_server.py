@@ -77,8 +77,8 @@ class BankServer:
             elif message.startswith("ADMIN_ACCOUNT:"):
                 response = self._handle_admin_account(message)
 
-            elif message == "ADMIN_STATISTICS":
-                response = self._handle_admin_statistics()
+            elif message.startswith("ADMIN_STATISTICS:"):
+                response = self._handle_admin_statistics(message)
 
             elif message.startswith("SERVER_LOGIN:"):
                 response = self._handle_server_login(message)
@@ -139,7 +139,7 @@ class BankServer:
         token = parts[1]
         account_id = parts[2]
 
-        customer_id = self.session_service.get_customer(token)
+        customer_id = self.session_service.get_identity(token)
 
         print("SESSION LOOKUP TOKEN:", token)
         print("SESSIONS:", self.session_service.sessions)
@@ -178,7 +178,7 @@ class BankServer:
         destination_server_id = parts[5]
         destination_account_id = parts[6]
 
-        customer_id = self.session_service.get_customer(token)
+        customer_id = self.session_service.get_identity(token)
 
         if customer_id is None:
             self.logger.warning(
@@ -260,36 +260,55 @@ class BankServer:
         if self.admin_authentication_service.authenticate(
             admin_id,
             otp
-):
+    ):
+            token = self.session_service.create_session(
+                admin_id
+        )
+
             self.logger.info(
                 f"Admin login successful: {admin_id}"
-    )
-            return "Admin login successful"
+        )
+
+            return f"Admin login successful|Token:{token}"
 
         self.logger.warning(
             f"Admin login failed: {admin_id}"
-)
+    )
 
         return "Admin login failed"
-
+    
     def _handle_admin_account(self, message):
         parts = message.split(":")
 
-        if len(parts) != 2:
+        if len(parts) != 3:
             return "Invalid admin account request"
 
-        account_id = parts[1]
+        token = parts[1]
+        account_id = parts[2]
+
+        admin_id = self.session_service.get_identity(token)
+
+        if admin_id is None:
+            self.logger.warning(
+                "Admin account request rejected: invalid session"
+        )
+            return "Authentication required"
 
         account = self.bank.get_account(account_id)
 
         if account is None:
             return "Account not found"
 
+        self.logger.info(
+            f"Admin account access: admin={admin_id}, "
+            f"account={account_id}"
+    )
+
         return (
             f"Account:{account.account_id}"
             f"|Customer:{account.owner.customer_id}"
             f"|Balance:{account.balance}"
-        )
+    )
 
     def _handle_server_login(self, message):
         parts = message.split(":")
@@ -489,8 +508,27 @@ class BankServer:
 
         return False
 
-    def _handle_admin_statistics(self):
+    def _handle_admin_statistics(self, message):
+        parts = message.split(":")
+
+        if len(parts) != 2:
+            return "Invalid admin statistics request"
+
+        token = parts[1]
+
+        admin_id = self.session_service.get_identity(token)
+
+        if admin_id is None:
+            self.logger.warning(
+                "Admin statistics request rejected: invalid session"
+        )
+            return "Authentication required"
+
         statistics = self.bank.get_statistics()
+
+        self.logger.info(
+            f"Admin statistics accessed: admin={admin_id}"
+    )
 
         return (
             f"Customers:{statistics['customers']}"

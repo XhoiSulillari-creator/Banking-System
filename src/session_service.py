@@ -10,17 +10,17 @@ class SessionService:
             minutes=session_duration_minutes
         )
 
-    def create_session(self, customer_id):
+    def create_session(self, identity):
         token = secrets.token_urlsafe(32)
 
         self.sessions[token] = {
-            "customer_id": customer_id,
+            "identity": identity,
             "expires_at": datetime.now() + self.session_duration
         }
 
         return token
 
-    def get_customer(self, token):
+    def get_identity(self, token):
         session = self.sessions.get(token)
 
         if session is None:
@@ -30,7 +30,7 @@ class SessionService:
             del self.sessions[token]
             return None
 
-        return session["customer_id"]
+        return session["identity"]
 
     def invalidate_session(self, token):
         self.sessions.pop(token, None)

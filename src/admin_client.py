@@ -6,7 +6,7 @@ class AdminClient:
         self.host = host
         self.port = port
         self.admin_id = None
-        self.authenticated = False
+        self.session_token = None
 
     def send_request(self, message):
         client_socket = socket.socket(
@@ -40,24 +40,32 @@ class AdminClient:
             f"ADMIN_LOGIN:{admin_id}:{otp}"
         )
 
-        if response == "Admin login successful":
+        if response.startswith(
+            "Admin login successful|Token:"
+        ):
             self.admin_id = admin_id
-            self.authenticated = True
+            self.session_token = response.split(
+                "Token:",
+                1
+            )[1]
 
         return response
 
     def get_account(self, account_id):
-        if not self.authenticated:
+        if self.session_token is None:
             return "Admin authentication required"
 
         return self.send_request(
-            f"ADMIN_ACCOUNT:{account_id}"
-    )
+            f"ADMIN_ACCOUNT:"
+            f"{self.session_token}:"
+            f"{account_id}"
+        )
 
     def get_statistics(self):
-        if not self.authenticated:
+        if self.session_token is None:
             return "Admin authentication required"
 
         return self.send_request(
-            "ADMIN_STATISTICS"
-    )
+            f"ADMIN_STATISTICS:"
+            f"{self.session_token}"
+        )
