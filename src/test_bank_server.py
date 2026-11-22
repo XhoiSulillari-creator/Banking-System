@@ -88,7 +88,7 @@ session_service = SessionService()
 # -------------------------
 
 peer_credentials = {
-    "BANK_GREECE": "gr-server-123"
+    "BANK_GREECE": "alb-server-123"
 }
 
 

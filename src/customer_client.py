@@ -65,14 +65,14 @@ class CustomerClient:
         destination_server_id,
         destination_account_id,
         amount
-    ):
+):
         return self.send_request(
             f"TRANSFER:"
-            f"{self.customer_id}:"
+            f"{self.session_token}:"
             f"{source_account_id}:"
             f"{destination_host}:"
             f"{destination_port}:"
             f"{destination_server_id}:"
             f"{destination_account_id}:"
             f"{amount}"
-        )
+    )

@@ -140,6 +140,7 @@ class BankServer:
         account_id = parts[2]
 
         customer_id = self.session_service.get_customer(token)
+
         print("SESSION LOOKUP TOKEN:", token)
         print("SESSIONS:", self.session_service.sessions)
         print("CUSTOMER FROM SESSION:", customer_id)
@@ -148,7 +149,7 @@ class BankServer:
             self.logger.warning(
                 "Account request rejected: invalid session"
         )
-        return "Authentication required"
+            return "Authentication required"
 
         account = self.bank.get_account(account_id)
 
@@ -170,12 +171,20 @@ class BankServer:
         if len(parts) != 8:
             return "Invalid transfer request"
 
-        customer_id = parts[1]
+        token = parts[1]
         source_account_id = parts[2]
         destination_host = parts[3]
         destination_port = parts[4]
         destination_server_id = parts[5]
         destination_account_id = parts[6]
+
+        customer_id = self.session_service.get_customer(token)
+
+        if customer_id is None:
+            self.logger.warning(
+                "Transfer request rejected: invalid session"
+        )
+            return "Authentication required"
 
         try:
             amount = float(parts[7])
@@ -185,7 +194,7 @@ class BankServer:
 
         source_account = self.bank.get_account(
             source_account_id
-        )
+    )
 
         if source_account is None:
             return "Source account not found"
@@ -194,7 +203,7 @@ class BankServer:
             return (
                 "Access denied: source account does not "
                 "belong to customer"
-            )
+        )
 
         if amount <= 0:
             return "Transfer amount must be greater than zero"
@@ -207,7 +216,7 @@ class BankServer:
             source_account_id,
             destination_account_id,
             amount
-        )
+    )
 
         if success:
             self.logger.info(
@@ -215,7 +224,7 @@ class BankServer:
                 f"{source_account_id} -> "
                 f"{destination_account_id}, "
                 f"amount={amount}"
-            )
+        )
             return "Transfer successful"
 
         self.logger.error(
@@ -223,7 +232,7 @@ class BankServer:
             f"{source_account_id} -> "
             f"{destination_account_id}, "
             f"amount={amount}"
-)
+    )
 
         return "Transfer failed"
 
